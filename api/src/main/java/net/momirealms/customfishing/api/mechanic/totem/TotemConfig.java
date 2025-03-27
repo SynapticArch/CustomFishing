@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,181 +17,127 @@
 
 package net.momirealms.customfishing.api.mechanic.totem;
 
-import net.momirealms.customfishing.api.mechanic.requirement.Requirement;
+import net.momirealms.customfishing.api.mechanic.misc.value.MathValue;
 import net.momirealms.customfishing.api.mechanic.totem.block.TotemBlock;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
- * This class represents the configuration for a totem.
- * It defines various settings and properties for the totem.
+ * Interface representing the configuration for a totem.
+ * This interface provides methods for retrieving totem models, particle settings,
+ * and other configuration details, as well as a builder for creating instances.
  */
-public class TotemConfig {
-
-    private String key;
-    private TotemModel[] totemModels;
-    private TotemParticle[] particleSettings;
-    private Requirement[] requirements;
-    private double radius;
-    private int duration;
+public interface TotemConfig {
 
     /**
-     * Get the array of totem models that define the totem's pattern.
+     * Retrieves the models for the totem.
      *
-     * @return An array of TotemModel objects.
+     * @return an array of {@link TotemModel} instances
      */
-    public TotemModel[] getTotemModels() {
-        return totemModels;
-    }
+    TotemModel[] totemModels();
 
     /**
-     * Get the array of requirements for totem activation.
+     * Retrieves the unique identifier for the totem configuration.
      *
-     * @return An array of Requirement objects.
+     * @return the unique identifier as a String
      */
-    public Requirement[] getRequirements() {
-        return requirements;
-    }
+    String id();
 
     /**
-     * Get the unique key associated with this totem configuration.
+     * Checks if the location matches the correct pattern for the totem.
      *
-     * @return The unique key as a string.
+     * @param location the {@link Location} to be checked
+     * @return true if the location matches the pattern, false otherwise
      */
-    public String getKey() {
-        return key;
-    }
+    boolean isRightPattern(Location location);
 
     /**
-     * Check if the provided location matches any of the totem model patterns.
+     * Retrieves the particle settings for the totem.
      *
-     * @param location The location to check.
-     * @return True if the location matches a totem model pattern, false otherwise.
+     * @return an array of {@link TotemParticle} instances
      */
-    public boolean isRightPattern(Location location) {
-        for (TotemModel totemModel : totemModels) {
-            if (totemModel.isPatternSatisfied(location)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    TotemParticle[] particleSettings();
 
     /**
-     * Get the array of particle settings for the totem's visual effects.
+     * Retrieves the radius of the totem's effect.
      *
-     * @return An array of TotemParticle objects.
+     * @return the radius as a {@link MathValue} for {@link Player}
      */
-    public TotemParticle[] getParticleSettings() {
-        return particleSettings;
-    }
+    MathValue<Player> radius();
 
     /**
-     * Get the activation radius of the totem.
+     * Retrieves the duration of the totem's effect.
      *
-     * @return The activation radius as a double.
+     * @return the duration as a {@link MathValue} for {@link Player}
      */
-    public double getRadius() {
-        return radius;
-    }
+    MathValue<Player> duration();
 
     /**
-     * Get the duration of the totem's effect when activated.
+     * Retrieves the core blocks of the totem.
      *
-     * @return The duration in seconds as an integer.
+     * @return an array of {@link TotemBlock} instances
      */
-    public int getDuration() {
-        return duration;
-    }
+    TotemBlock[] totemCore();
 
     /**
-     * Get the totem core associated with the first totem model.
-     * This is used for some internal functionality.
+     * Creates a new {@link Builder} instance to construct a {@link TotemConfig}.
      *
-     * @return An array of TotemBlock objects representing the totem core.
+     * @return a new {@link Builder} instance
      */
-    public TotemBlock[] getTotemCore() {
-        return totemModels[0].getTotemCore();
-    }
-
-    public static Builder builder(String key) {
-        return new Builder(key);
+    static Builder builder() {
+        return new TotemConfigImpl.BuilderImpl();
     }
 
     /**
-     * This class represents a builder for creating instances of TotemConfig.
-     * It allows for the convenient construction of TotemConfig objects with various settings.
+     * Builder interface for constructing instances of {@link TotemConfig}.
      */
-    public static class Builder {
-
-        private final TotemConfig config;
-
-        public Builder(String key) {
-            this.config = new TotemConfig();
-            this.config.key = key;
-        }
+    interface Builder {
 
         /**
-         * Sets the totem models for the TotemConfig being built.
+         * Sets the unique identifier for the {@link TotemConfig} being built.
          *
-         * @param totemModels An array of TotemModel objects representing different totem models.
-         * @return The builder instance to allow for method chaining.
+         * @param id the unique identifier as a String
+         * @return the {@link Builder} instance for method chaining
          */
-        public Builder setTotemModels(TotemModel[] totemModels) {
-            config.totemModels = totemModels;
-            return this;
-        }
+        Builder id(String id);
 
         /**
-         * Sets the particle settings for the TotemConfig being built.
+         * Sets the totem models for the {@link TotemConfig} being built.
          *
-         * @param particleSettings An array of TotemParticle objects representing particle settings.
-         * @return The builder instance to allow for method chaining.
+         * @param totemModels an array of {@link TotemModel} instances
+         * @return the {@link Builder} instance for method chaining
          */
-        public Builder setParticleSettings(TotemParticle[] particleSettings) {
-            config.particleSettings = particleSettings;
-            return this;
-        }
+        Builder totemModels(TotemModel[] totemModels);
 
         /**
-         * Sets the requirements for the TotemConfig being built.
+         * Sets the particle settings for the {@link TotemConfig} being built.
          *
-         * @param requirements An array of Requirement objects representing activation requirements.
-         * @return The builder instance to allow for method chaining.
+         * @param particleSettings an array of {@link TotemParticle} instances
+         * @return the {@link Builder} instance for method chaining
          */
-        public Builder setRequirements(Requirement[] requirements) {
-            config.requirements = requirements;
-            return this;
-        }
+        Builder particleSettings(TotemParticle[] particleSettings);
 
         /**
-         * Sets the radius for the TotemConfig being built.
+         * Sets the radius of the totem's effect for the {@link TotemConfig} being built.
          *
-         * @param radius The activation radius for the totem.
-         * @return The builder instance to allow for method chaining.
+         * @param radius the radius as a {@link MathValue} for {@link Player}
+         * @return the {@link Builder} instance for method chaining
          */
-        public Builder setRadius(double radius) {
-            config.radius = radius;
-            return this;
-        }
+        Builder radius(MathValue<Player> radius);
 
         /**
-         * Sets the duration for the TotemConfig being built.
+         * Sets the duration of the totem's effect for the {@link TotemConfig} being built.
          *
-         * @param duration The duration of the totem's effect.
-         * @return The builder instance to allow for method chaining.
+         * @param duration the duration as a {@link MathValue} for {@link Player}
+         * @return the {@link Builder} instance for method chaining
          */
-        public Builder setDuration(int duration) {
-            config.duration = duration;
-            return this;
-        }
+        Builder duration(MathValue<Player> duration);
 
         /**
-         * Builds and returns the finalized TotemConfig object.
+         * Builds and returns a new {@link TotemConfig} instance.
          *
-         * @return The constructed TotemConfig object.
+         * @return a new {@link TotemConfig} instance
          */
-        public TotemConfig build() {
-            return config;
-        }
+        TotemConfig build();
     }
 }

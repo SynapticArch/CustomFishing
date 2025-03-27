@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,40 +17,266 @@
 
 package net.momirealms.customfishing.api.mechanic.effect;
 
-import net.momirealms.customfishing.api.common.Pair;
-import net.momirealms.customfishing.api.mechanic.misc.WeightModifier;
+import net.momirealms.customfishing.api.mechanic.loot.operation.WeightOperation;
+import net.momirealms.customfishing.common.util.Pair;
 
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Represents an effect applied in the fishing.
+ */
 public interface Effect {
 
-    boolean canLavaFishing();
+    /**
+     * Retrieves the properties of this effect.
+     *
+     * @return a map of effect properties and their values
+     */
+    Map<EffectProperties<?>, Object> properties();
 
-    double getMultipleLootChance();
+    /**
+     * Put the properties into the effect
+     *
+     * @param properties properties to add
+     * @return the effect instance
+     */
+    Effect properties(Map<EffectProperties<?>, Object> properties);
 
-    double getSize();
+    /**
+     * Sets the specified property to the given value.
+     *
+     * @param key the property key
+     * @param value the property value
+     * @param <C> the type of the property value
+     * @return the effect instance with the updated property
+     */
+    <C> EffectImpl arg(EffectProperties<C> key, C value);
 
-    double getSizeMultiplier();
+    /**
+     * Retrieves the value of the specified property.
+     *
+     * @param key the property key
+     * @param <C> the type of the property value
+     * @return the value of the specified property
+     */
+    <C> C arg(EffectProperties<C> key);
 
-    double getScore();
+    /**
+     * Gets the chance of multiple loots.
+     *
+     * @return the multiple loot chance
+     */
+    double multipleLootChance();
 
-    double getScoreMultiplier();
+    /**
+     * Sets the chance of multiple loots.
+     *
+     * @param multipleLootChance the new multiple loot chance
+     * @return the effect instance
+     */
+    Effect multipleLootChance(double multipleLootChance);
 
-    double getWaitTime();
+    /**
+     * Gets the size adder.
+     *
+     * @return the size adder
+     */
+    double sizeAdder();
 
-    double getWaitTimeMultiplier();
+    /**
+     * Sets the size adder.
+     *
+     * @param sizeAdder the new size adder
+     * @return the effect instance
+     */
+    Effect sizeAdder(double sizeAdder);
 
-    double getGameTime();
+    /**
+     * Gets the size multiplier.
+     *
+     * @return the size multiplier
+     */
+    double sizeMultiplier();
 
-    double getGameTimeMultiplier();
+    /**
+     * Sets the size multiplier.
+     *
+     * @param sizeMultiplier the new size multiplier
+     * @return the effect instance
+     */
+    Effect sizeMultiplier(double sizeMultiplier);
 
-    double getDifficulty();
+    /**
+     * Gets the score adder.
+     *
+     * @return the score adder
+     */
+    double scoreAdder();
 
-    double getDifficultyMultiplier();
+    /**
+     * Sets the score adder.
+     *
+     * @param scoreAdder the new score adder
+     * @return the effect instance
+     */
+    Effect scoreAdder(double scoreAdder);
 
-    List<Pair<String, WeightModifier>> getWeightModifier();
+    /**
+     * Gets the score multiplier.
+     *
+     * @return the score multiplier
+     */
+    double scoreMultiplier();
 
-    List<Pair<String, WeightModifier>> getWeightModifierIgnored();
+    /**
+     * Sets the score multiplier.
+     *
+     * @param scoreMultiplier the new score multiplier
+     * @return the effect instance
+     */
+    Effect scoreMultiplier(double scoreMultiplier);
 
-    void merge(Effect effect);
+    /**
+     * Gets the wait time adder.
+     *
+     * @return the wait time adder
+     */
+    double waitTimeAdder();
+
+    /**
+     * Sets the wait time adder.
+     *
+     * @param waitTimeAdder the new wait time adder
+     * @return the effect instance
+     */
+    Effect waitTimeAdder(double waitTimeAdder);
+
+    /**
+     * Gets the wait time multiplier.
+     *
+     * @return the wait time multiplier
+     */
+    double waitTimeMultiplier();
+
+    /**
+     * Sets the wait time multiplier.
+     *
+     * @param waitTimeMultiplier the new wait time multiplier
+     * @return the effect instance
+     */
+    Effect waitTimeMultiplier(double waitTimeMultiplier);
+
+    /**
+     * Gets the game time adder.
+     *
+     * @return the game time adder
+     */
+    double gameTimeAdder();
+
+    /**
+     * Sets the game time adder.
+     *
+     * @param gameTimeAdder the new game time adder
+     * @return the effect instance
+     */
+    Effect gameTimeAdder(double gameTimeAdder);
+
+    /**
+     * Gets the game time multiplier.
+     *
+     * @return the game time multiplier
+     */
+    double gameTimeMultiplier();
+
+    /**
+     * Sets the game time multiplier.
+     *
+     * @param gameTimeMultiplier the new game time multiplier
+     * @return the effect instance
+     */
+    Effect gameTimeMultiplier(double gameTimeMultiplier);
+
+    /**
+     * Gets the difficulty adder.
+     *
+     * @return the difficulty adder
+     */
+    double difficultyAdder();
+
+    /**
+     * Sets the difficulty adder.
+     *
+     * @param difficultyAdder the new difficulty adder
+     * @return the effect instance
+     */
+    Effect difficultyAdder(double difficultyAdder);
+
+    /**
+     * Gets the difficulty multiplier.
+     *
+     * @return the difficulty multiplier
+     */
+    double difficultyMultiplier();
+
+    /**
+     * Sets the difficulty multiplier.
+     *
+     * @param difficultyMultiplier the new difficulty multiplier
+     * @return the effect instance
+     */
+    Effect difficultyMultiplier(double difficultyMultiplier);
+
+    /**
+     * Gets the list of weight operations.
+     *
+     * @return the list of weight operations
+     */
+    List<Pair<String, WeightOperation>> weightOperations();
+
+    /**
+     * Adds the list of weight operations.
+     *
+     * @param weightOperations the list of weight operations to add
+     * @return the effect instance
+     */
+    Effect weightOperations(List<Pair<String, WeightOperation>> weightOperations);
+
+    /**
+     * Gets the list of weight operations that are conditions ignored.
+     *
+     * @return the list of weight operations that are conditions ignored
+     */
+    List<Pair<String, WeightOperation>> weightOperationsIgnored();
+
+    /**
+     * Adds the list of weight operations that are conditions ignored.
+     *
+     * @param weightOperations the list of weight operations that are conditions ignored
+     * @return the effect instance
+     */
+    Effect weightOperationsIgnored(List<Pair<String, WeightOperation>> weightOperations);
+
+    /**
+     * Combines this effect with another effect.
+     *
+     * @param effect the effect to combine with
+     */
+    void combine(Effect effect);
+
+    /**
+     * Get a copy of the effect
+     *
+     * @return the copied effect
+     */
+    Effect copy();
+
+    /**
+     * Creates a new instance of {@link Effect}.
+     *
+     * @return a new {@link Effect} instance
+     */
+    static Effect newInstance() {
+        return new EffectImpl();
+    }
 }

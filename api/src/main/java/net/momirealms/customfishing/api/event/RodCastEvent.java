@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,8 +17,7 @@
 
 package net.momirealms.customfishing.api.event;
 
-import net.momirealms.customfishing.api.mechanic.condition.FishingPreparation;
-import net.momirealms.customfishing.api.mechanic.effect.Effect;
+import net.momirealms.customfishing.api.mechanic.fishing.FishingGears;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
@@ -29,25 +28,21 @@ import org.jetbrains.annotations.NotNull;
  * This class represents an event that occurs when a player casts a fishing rod.
  */
 public class RodCastEvent extends PlayerEvent implements Cancellable {
-
-    private final Effect effect;
+    private final FishingGears gears;
     private boolean isCancelled;
     private final PlayerFishEvent event;
-    private final FishingPreparation preparation;
     private static final HandlerList handlerList = new HandlerList();
 
     /**
      * Constructs a new RodCastEvent.
      *
-     * @param event              The original PlayerFishEvent that triggered the rod cast.
-     * @param fishingPreparation The fishing preparation associated with the rod cast.
-     * @param effect             The effect associated with the fishing rod cast.
+     * @param event The original PlayerFishEvent that triggered this event
+     * @param gears The fishing gears used by the player
      */
-    public RodCastEvent(PlayerFishEvent event, FishingPreparation fishingPreparation, Effect effect) {
+    public RodCastEvent(PlayerFishEvent event, FishingGears gears) {
         super(event.getPlayer());
-        this.effect = effect;
+        this.gears = gears;
         this.event = event;
-        this.preparation = fishingPreparation;
     }
 
     @Override
@@ -56,49 +51,41 @@ public class RodCastEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Cancelling this event would not cancel the bukkit PlayerFishEvent
+     * Cancelling this event would disable CustomFishing mechanics
+     * If you want to prevent players from casting, cancel {@link #getBukkitPlayerFishEvent()} too
      *
-     * @param cancel true if you wish to cancel this event
+     * @param cancel true if you want to cancel this event
      */
     @Override
     public void setCancelled(boolean cancel) {
         this.isCancelled = cancel;
     }
 
-    public static HandlerList getHandlerList() {
-        return handlerList;
+    /**
+     * Get the {@link FishingGears}
+     *
+     * @return fishing gears
+     */
+    public FishingGears getGears() {
+        return gears;
     }
 
     /**
-     * Gets the fishing preparation associated with the rod cast.
+     * Gets the original {@link PlayerFishEvent} that triggered the {@link RodCastEvent}.
      *
-     * @return The FishingPreparation associated with the rod cast.
+     * @return The original PlayerFishEvent.
      */
-    public FishingPreparation getPreparation() {
-        return preparation;
+    public PlayerFishEvent getBukkitPlayerFishEvent() {
+        return event;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
         return getHandlerList();
-    }
-
-    /**
-     * Gets the effect associated with the fishing rod cast.
-     *
-     * @return The Effect associated with the rod cast.
-     */
-    public Effect getEffect() {
-        return effect;
-    }
-
-    /**
-     * Gets the original PlayerFishEvent that triggered the rod cast.
-     *
-     * @return The original PlayerFishEvent.
-     */
-    public PlayerFishEvent getBukkitPlayerFishEvent() {
-        return event;
     }
 }

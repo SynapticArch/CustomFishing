@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,9 +17,22 @@
 
 package net.momirealms.customfishing.api.mechanic.block;
 
+import net.momirealms.customfishing.api.mechanic.context.Context;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
+/**
+ * The BlockDataModifier interface that provides the logic for applying modifications
+ * to block data in a context-specific manner.
+ */
+@FunctionalInterface
 public interface BlockDataModifier {
-    void apply(Player player, BlockData blockData);
+
+    /**
+     * Applies modifications to the provided {@link BlockData} based on the given {@link Context}.
+     *
+     * @param context   the context
+     * @param blockData the block data to be modified
+     */
+    void apply(Context<Player> context, BlockData blockData);
 }

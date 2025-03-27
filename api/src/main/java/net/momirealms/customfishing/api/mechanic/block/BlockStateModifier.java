@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,9 +17,21 @@
 
 package net.momirealms.customfishing.api.mechanic.block;
 
+import net.momirealms.customfishing.api.mechanic.context.Context;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 
+/**
+ * Functional interface for modifying a {@link BlockState} based on a given context.
+ */
+@FunctionalInterface
 public interface BlockStateModifier {
-    void apply(Player player, BlockState blockState);
+
+    /**
+     * Applies modifications to the provided block state based on the given context.
+     *
+     * @param context the context containing the player information.
+     * @param blockState the block state to modify.
+     */
+    void apply(Context<Player> context, BlockState blockState);
 }

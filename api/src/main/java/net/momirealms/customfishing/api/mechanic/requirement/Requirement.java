@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,15 +17,25 @@
 
 package net.momirealms.customfishing.api.mechanic.requirement;
 
-import net.momirealms.customfishing.api.mechanic.condition.Condition;
+import net.momirealms.customfishing.api.mechanic.context.Context;
 
-public interface Requirement {
+/**
+ * Interface representing a requirement that must be met.
+ * This can be used to define conditions that need to be satisfied within a given context.
+ *
+ * @param <T> the type parameter for the context
+ */
+public interface Requirement<T> {
 
     /**
-     * Is condition met the requirement
+     * Evaluates whether the requirement is met within the given context.
      *
-     * @param condition condition
-     * @return meet or not
+     * @param context the context in which the requirement is evaluated
+     * @return true if the requirement is met, false otherwise
      */
-    boolean isConditionMet(Condition condition);
+    boolean isSatisfied(Context<T> context);
+
+    static <T> Requirement<T> empty() {
+        return EmptyRequirement.instance();
+    }
 }

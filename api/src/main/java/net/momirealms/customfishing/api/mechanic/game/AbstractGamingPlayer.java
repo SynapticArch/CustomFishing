@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,129 +17,243 @@
 
 package net.momirealms.customfishing.api.mechanic.game;
 
-import net.momirealms.customfishing.api.CustomFishingPlugin;
-import net.momirealms.customfishing.api.manager.FishingManager;
-import net.momirealms.customfishing.api.mechanic.effect.Effect;
-import net.momirealms.customfishing.api.scheduler.CancellableTask;
-import org.bukkit.Material;
-import org.bukkit.entity.FishHook;
+import net.momirealms.customfishing.api.BukkitCustomFishingPlugin;
+import net.momirealms.customfishing.api.mechanic.context.ContextKeys;
+import net.momirealms.customfishing.api.mechanic.fishing.CustomFishingHook;
+import net.momirealms.customfishing.common.plugin.scheduler.SchedulerTask;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
+import org.jetbrains.annotations.ApiStatus;
 
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Represents an abstract gaming player.
+ * Provides the basic structure and functionalities for a gaming player.
+ */
 public abstract class AbstractGamingPlayer implements GamingPlayer, Runnable {
-
-    private final FishingManager manager;
     protected long deadline;
     protected boolean success;
-    protected CancellableTask task;
-    protected Player player;
-    protected GameSettings settings;
-    protected FishHook fishHook;
+    protected SchedulerTask task;
+    protected GameSetting settings;
+    protected CustomFishingHook hook;
     protected boolean isTimeOut;
+    private boolean valid = true;
+    private boolean firstFlag = true;
+    protected Boolean forcedGameResult;
 
-    public AbstractGamingPlayer(Player player, FishHook hook, GameSettings settings) {
-        this.player = player;
-        this.fishHook = hook;
+    @Override
+    public void setGameResult(Boolean forcedGameResult) {
+        this.forcedGameResult = forcedGameResult;
+    }
+
+    /**
+     * Constructs an AbstractGamingPlayer instance.
+     *
+     * @param hook the custom fishing hook.
+     * @param settings the game settings.
+     */
+    public AbstractGamingPlayer(CustomFishingHook hook, GameSetting settings) {
+        this.hook = hook;
         this.settings = settings;
-        this.manager = CustomFishingPlugin.get().getFishingManager();
-        this.deadline = (long) (System.currentTimeMillis() + settings.getTime() * 1000L);
+        this.deadline = (long) (System.currentTimeMillis() + settings.time() * 1000L);
         this.arrangeTask();
     }
 
-    public void arrangeTask() {
-        this.task = CustomFishingPlugin.get().getScheduler().runTaskSyncTimer(this, fishHook.getLocation(), 1, 1);
+    @Override
+    public GameSetting settings() {
+        return settings;
     }
 
+    /**
+     * Arranges the task for the gaming player.
+     */
+    public void arrangeTask() {
+        this.task = BukkitCustomFishingPlugin.getInstance().getScheduler().asyncRepeating(this, 50, 50, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Destroys the gaming player, canceling any ongoing tasks.
+     */
+    @Override
+    public void destroy() {
+        valid = false;
+        if (task != null) task.cancel();
+    }
+
+    /**
+     * Cancels the gaming player, it defaults to {@link AbstractGamingPlayer#destroy()}
+     */
     @Override
     public void cancel() {
-        if (task != null && !task.isCancelled())
-            task.cancel();
+        destroy();
     }
 
+    /**
+     * Checks if the gaming player has successfully completed the game.
+     *
+     * @return true if successful, false otherwise.
+     */
     @Override
     public boolean isSuccessful() {
+        if (forcedGameResult != null) return forcedGameResult;
         return success;
     }
 
+    /**
+     * Handles internal right-click actions.
+     */
+    @ApiStatus.Internal
+    public void internalRightClick() {
+        firstFlag = true;
+        handleRightClick();
+    }
+
+    /**
+     * Handles right-click actions.
+     */
     @Override
-    public boolean onRightClick() {
+    public void handleRightClick() {
         endGame();
-        return true;
     }
 
+    /**
+     * Handles internal left-click actions.
+     *
+     * @return true if cancel the event, false otherwise.
+     */
+    @ApiStatus.Internal
+    public boolean internalLeftClick() {
+        if (firstFlag) {
+            firstFlag = false;
+            return false;
+        }
+        return handleLeftClick();
+    }
+
+    /**
+     * Handles left-click actions.
+     *
+     * @return true if cancel the event, false otherwise.
+     */
     @Override
-    public boolean onLeftClick() {
+    public boolean handleLeftClick() {
         return false;
     }
 
+    /**
+     * Handles chat input during the game.
+     *
+     * @param message the chat message.
+     * @return true if cancel the event, false otherwise.
+     */
     @Override
-    public boolean onChat(String message) {
+    public boolean handleChat(String message) {
         return false;
     }
 
+    /**
+     * Handles the swap hand action during the game.
+     */
     @Override
-    public boolean onSwapHand() {
+    public void handleSwapHand() {
+    }
+
+    /**
+     * Handles the jump action during the game.
+     *
+     * @return true if cancel the event, false otherwise.
+     */
+    @Override
+    public boolean handleJump() {
         return false;
     }
 
+    /**
+     * Handles the sneak action during the game.
+     *
+     * @return true if cancel the event, false otherwise.
+     */
     @Override
-    public boolean onJump() {
+    public boolean handleSneak() {
         return false;
     }
 
-    @Override
-    public boolean onSneak() {
-        return false;
-    }
-
+    /**
+     * Gets the player associated with the gaming player.
+     *
+     * @return the player.
+     */
     @Override
     public Player getPlayer() {
-        return player;
+        return hook.getContext().holder();
     }
 
-    @Override
-    public Effect getEffectReward() {
-        return null;
-    }
-
+    /**
+     * Runs the gaming player's task.
+     */
     @Override
     public void run() {
         if (timeOutCheck()) {
             return;
         }
-        switchItemCheck();
-        onTick();
+        tick();
     }
 
-    public void onTick() {
-
+    /**
+     * Checks if the game is valid.
+     *
+     * @return true if valid, false otherwise.
+     */
+    @Override
+    public boolean isValid() {
+        return valid;
     }
 
-    protected void endGame() {
-        this.manager.processGameResult(this);
+    /**
+     * Defines the tick behavior for the gaming player.
+     */
+    protected abstract void tick();
+
+    /**
+     * Ends the game for the gaming player.
+     */
+    @Override
+    public void endGame() {
+        if (!isValid()) return;
+        destroy();
+        boolean success = isSuccessful();
+        BukkitCustomFishingPlugin.getInstance().getScheduler().sync().run(() -> {
+            if (success) {
+                hook.handleSuccessfulFishing();
+            } else {
+                hook.handleFailedFishing();
+            }
+            hook.destroy();
+        }, hook.getHookEntity().getLocation());
     }
 
+    /**
+     * Sets the game result.
+     *
+     * @param success true if the game was successful, false otherwise.
+     */
     protected void setGameResult(boolean success) {
         this.success = success;
     }
 
+    /**
+     * Checks if the game has timed out.
+     *
+     * @return true if the game has timed out, false otherwise.
+     */
     protected boolean timeOutCheck() {
-        if (System.currentTimeMillis() > deadline) {
+        long delta = deadline - System.currentTimeMillis();
+        if (delta <= 0) {
             isTimeOut = true;
-            cancel();
             endGame();
             return true;
         }
+        hook.getContext().arg(ContextKeys.TIME_LEFT, String.format("%.1f", (double) delta / 1000));
         return false;
-    }
-
-    protected void switchItemCheck() {
-        PlayerInventory playerInventory = player.getInventory();
-        if (playerInventory.getItemInMainHand().getType() != Material.FISHING_ROD
-            && playerInventory.getItemInOffHand().getType() != Material.FISHING_ROD
-        ) {
-            cancel();
-            endGame();
-        }
     }
 }

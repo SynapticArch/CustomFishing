@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 package net.momirealms.customfishing.api.mechanic.totem;
 
 import net.momirealms.customfishing.api.mechanic.totem.block.TotemBlock;
-import org.apache.commons.lang3.SerializationUtils;
+import net.momirealms.customfishing.common.util.SerializationUtils;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 

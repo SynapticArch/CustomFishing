@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,19 @@
 
 package net.momirealms.customfishing.api.mechanic.game;
 
-import org.bukkit.configuration.ConfigurationSection;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 
+/**
+ * Factory interface for creating game instances.
+ */
 public interface GameFactory {
 
-    GameInstance setArgs(ConfigurationSection section);
-
+    /**
+     * Creates a new game instance with the specified identifier and configuration section.
+     *
+     * @param id the identifier of the game.
+     * @param section the configuration section for the game.
+     * @return the created game instance.
+     */
+    Game create(String id, Section section);
 }

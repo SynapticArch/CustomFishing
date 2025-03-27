@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,87 +17,127 @@
 
 package net.momirealms.customfishing.api.mechanic.block;
 
+import net.momirealms.customfishing.api.mechanic.misc.value.MathValue;
+import org.bukkit.entity.Player;
+
 import java.util.List;
 
-public class BlockConfig implements BlockSettings {
+/**
+ * Interface representing the configuration for a block loot.
+ */
+public interface BlockConfig {
 
-    private String blockID;
-    private List<BlockDataModifier> dataModifierList;
-    private List<BlockStateModifier> stateModifierList;
-    private boolean persist;
-    private double horizontalVector;
-    private double verticalVector;
+    MathValue<Player> DEFAULT_HORIZONTAL_VECTOR = MathValue.plain(1.1);
+    MathValue<Player> DEFAULT_VERTICAL_VECTOR = MathValue.plain(1.2);
 
-    @Override
-    public String getBlockID() {
-        return blockID;
+    /**
+     * Gets the ID
+     *
+     * @return the ID.
+     */
+    String id();
+
+    /**
+     * Gets the unique identifier for the block.
+     *
+     * @return The block's unique identifier.
+     */
+    String blockID();
+
+    /**
+     * Retrieves the horizontal vector value for the block.
+     *
+     * @return the horizontal vector value as a double
+     */
+    MathValue<Player> horizontalVector();
+
+    /**
+     * Retrieves the vertical vector value for the block.
+     *
+     * @return the vertical vector value as a double
+     */
+    MathValue<Player> verticalVector();
+
+    /**
+     * Gets the list of data modifiers applied to the block.
+     *
+     * @return A list of {@link BlockDataModifier} objects.
+     */
+    List<BlockDataModifier> dataModifier();
+
+    /**
+     * Gets the list of state modifiers applied to the block.
+     *
+     * @return A list of {@link BlockStateModifier} objects.
+     */
+    List<BlockStateModifier> stateModifiers();
+
+    /**
+     * Creates a new builder instance for constructing a {@link BlockConfig}.
+     *
+     * @return A new {@link Builder} instance.
+     */
+    static Builder builder() {
+        return new BlockConfigImpl.BuilderImpl();
     }
 
-    @Override
-    public List<BlockDataModifier> getDataModifier() {
-        return dataModifierList;
-    }
+    /**
+     * Builder interface for constructing a {@link BlockConfig} instance.
+     */
+    interface Builder {
 
-    @Override
-    public List<BlockStateModifier> getStateModifierList() {
-        return stateModifierList;
-    }
+        /**
+         * Sets the ID
+         *
+         * @return the current Builder instance
+         */
+        Builder id(String id);
 
-    @Override
-    public boolean isPersist() {
-        return persist;
-    }
+        /**
+         * Sets the block ID for the configuration.
+         *
+         * @param blockID The block's unique identifier.
+         * @return The current {@link Builder} instance.
+         */
+        Builder blockID(String blockID);
 
-    @Override
-    public double getHorizontalVector() {
-        return horizontalVector;
-    }
+        /**
+         * Sets the vertical vector value for the BlockConfig being built.
+         *
+         * @param value the vertical vector value as a double
+         * @return the current Builder instance
+         */
+        Builder verticalVector(MathValue<Player> value);
 
-    @Override
-    public double getVerticalVector() {
-        return verticalVector;
-    }
+        /**
+         * Sets the horizontal vector value for the BlockConfig being built.
+         *
+         * @param value the horizontal vector value as a double
+         * @return the current Builder instance
+         */
+        Builder horizontalVector(MathValue<Player> value);
 
-    public static class Builder {
+        /**
+         * Sets the list of data modifiers for the configuration.
+         *
+         * @param dataModifierList A list of {@link BlockDataModifier} objects.
+         * @return The current {@link Builder} instance.
+         */
+        Builder dataModifierList(List<BlockDataModifier> dataModifierList);
 
-        private final BlockConfig config;
+        /**
+         * Sets the list of state modifiers for the configuration.
+         *
+         * @param stateModifierList A list of {@link BlockStateModifier} objects.
+         * @return The current {@link Builder} instance.
+         */
+        Builder stateModifierList(List<BlockStateModifier> stateModifierList);
 
-        public Builder() {
-            this.config = new BlockConfig();
-        }
-
-        public Builder persist(boolean value) {
-            config.persist = value;
-            return this;
-        }
-
-        public Builder horizontalVector(double value) {
-            config.horizontalVector = value;
-            return this;
-        }
-
-        public Builder verticalVector(double value) {
-            config.verticalVector = value;
-            return this;
-        }
-
-        public Builder blockID(String value) {
-            config.blockID = value;
-            return this;
-        }
-
-        public Builder dataModifiers(List<BlockDataModifier> value) {
-            config.dataModifierList = value;
-            return this;
-        }
-
-        public Builder stateModifiers(List<BlockStateModifier> value) {
-            config.stateModifierList = value;
-            return this;
-        }
-
-        public BlockConfig build() {
-            return config;
-        }
+        /**
+         * Builds and returns the configured {@link BlockConfig} instance.
+         *
+         * @return The constructed {@link BlockConfig} instance.
+         */
+        BlockConfig build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,53 +17,99 @@
 
 package net.momirealms.customfishing.api.mechanic.game;
 
-import net.momirealms.customfishing.api.mechanic.effect.Effect;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a gaming player.
+ */
 public interface GamingPlayer {
 
     /**
-     * Cancel the game
+     * Checks if the gaming player is valid.
+     *
+     * @return {@code true} if the gaming player is valid, {@code false} otherwise
+     */
+    boolean isValid();
+
+    /**
+     * Sets the game result
+     *
+     * @param result result, true for success, false for failure
+     */
+    void setGameResult(Boolean result);
+
+    /**
+     * Gets the current game settings
+     *
+     * @return game settings
+     */
+    GameSetting settings();
+
+    /**
+     * Destroys the gaming player, performing any necessary cleanup
+     */
+    void destroy();
+
+    /**
+     * Cancels the game
      */
     void cancel();
 
+    /**
+     * Checks if the gaming player has successfully completed the game.
+     *
+     * @return true if successful, false otherwise.
+     */
     boolean isSuccessful();
 
     /**
-     * @return whether to cancel the event
+     * Handles left-click actions.
+     *
+     * @return true if cancel the event, false otherwise.
      */
-    boolean onRightClick();
+    boolean handleLeftClick();
 
     /**
-     * @return whether to cancel the event
+     * Handles right-click actions.
      */
-    boolean onSwapHand();
+    void handleRightClick();
 
     /**
-     * @return whether to cancel the event
+     * Handles the swap hand action during the game.
      */
-    boolean onLeftClick();
+    void handleSwapHand();
 
     /**
-     * @return whether to cancel the event
+     * Handles chat input during the game.
+     *
+     * @param message the chat message.
+     * @return true if cancel the event, false otherwise.
      */
-    boolean onChat(String message);
+    boolean handleChat(String message);
 
     /**
-     * @return whether to cancel the event
+     * Handles the jump action during the game.
+     *
+     * @return true if cancel the event, false otherwise.
      */
-    boolean onJump();
+    boolean handleJump();
 
     /**
-     * @return whether to cancel the event
+     * Handles the sneak action during the game.
+     *
+     * @return true if cancel the event, false otherwise.
      */
-    boolean onSneak();
+    boolean handleSneak();
 
+    /**
+     * Gets the player associated with the gaming player.
+     *
+     * @return the player.
+     */
     Player getPlayer();
 
     /**
-     * @return effect reward based on game results
+     * Ends the game
      */
-    @Nullable Effect getEffectReward();
+    void endGame();
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +21,10 @@ public enum LootType {
 
     ITEM,
     ENTITY,
-    BLOCK,
-    GLOBAL
+    BLOCK;
+
+    @Override
+    public String toString() {
+        return name();
+    }
 }

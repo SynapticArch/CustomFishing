@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 package net.momirealms.customfishing.api.mechanic.action;
 
 public enum ActionTrigger {
-
     SUCCESS,
     FAILURE,
     HOOK,
@@ -26,8 +25,12 @@ public enum ActionTrigger {
     CAST,
     BITE,
     LAND,
+    LURE,
+    ESCAPE,
     ACTIVATE,
     TIMER,
     INTERACT,
-    NEW_SIZE_RECORD
+    REEL,
+    NEW_SIZE_RECORD,
+    END
 }

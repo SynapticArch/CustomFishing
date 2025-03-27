@@ -1,72 +1,82 @@
-# Custom-Fishing
+# Custom-Fishing 🎣
 
 ![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/Xiao-MoMi/Custom-Fishing)
-![bStats Servers](https://img.shields.io/bstats/servers/16648)
-![bStats Players](https://img.shields.io/bstats/players/16648)
-![GitHub](https://img.shields.io/github/license/Xiao-MoMi/Custom-Fishing)
-[![](https://jitpack.io/v/Xiao-MoMi/Custom-Fishing.svg)](https://jitpack.io/#Xiao-MoMi/Custom-Fishing)
 <a href="https://mo-mi.gitbook.io/xiaomomi-plugins/plugin-wiki/customfishing" alt="GitBook">
 <img src="https://img.shields.io/badge/docs-gitbook-brightgreen" alt="Gitbook"/>
 </a>
+[![Scc Count Badge](https://sloc.xyz/github/Xiao-MoMi/Custom-Fishing/?category=codes)](https://github.com/Xiao-MoMi/Custom-Fishing/)
+![Code Size](https://img.shields.io/github/languages/code-size/Xiao-MoMi/Custom-Fishing)
+![bStats Servers](https://img.shields.io/bstats/servers/16648)
+![bStats Players](https://img.shields.io/bstats/players/16648)
+![GitHub](https://img.shields.io/github/license/Xiao-MoMi/Custom-Fishing)
 
-CustomFishing is a Paper plugin that provides minigames and a powerful condition & action library for fishing.
-With the new concept of weight system, CustomFishing brings unlimited customization possibilities and best performance.
+## 📌 About CustomFishing
+CustomFishing is a **Paper plugin** designed to provide a variety of **fishing minigames** and a powerful **condition and action system**. It introduces a unique **weight system**, offering unparalleled customization while maintaining optimal performance.
 
-## How to build
+### 🔥 Key Features:
+- Extensive **customization** options for fishing mechanics.
+- Ability to **register custom** mechanisms, actions, conditions, games, and configuration parsers.
+- Supports **innovative fishing experiences**, such as **lava fishing** or **void fishing**.
+- Provides a **robust API** for developers to extend functionality easily.
 
-### Windows
+---
+## 🔧 How to Build
 
-#### Command Line
-Install JDK 17 and set the JDK installation path to JAVA_HOME as an environment variable.\
-Start powershell and change directory to the project folder.\
-Execute ".\gradlew build" and get the jar at /target/CustomFishing-plugin-version.jar.
+### 💻 Command Line
+1. Install **JDK 17 & 21**.
+2. Open a terminal and navigate to the project directory.
+3. Run:
+   ```sh
+   ./gradlew build
+   ```
+4. The artifact will be available in the **/target** folder.
 
-#### IDE
-Import the project and execute gradle build action.
+### 🛠️ Using an IDE
+1. Import the project into your preferred IDE.
+2. Execute the **Gradle build** action.
+3. Find the artifact in the **/target** folder.
 
-##### About Proxy
-If you are using a proxy, configurate the proxy in gradle.properties. Otherwise comment the lines in gradle.properties.
+---
+## 🤝 How to Contribute
 
-## Support the developer
+### 🌍 Translations
+1. Clone this repository.
+2. Create a new language file in:
+   ```
+   /core/src/main/resources/translations
+   ```
+3. Once done, submit a **pull request** for review. We appreciate your contributions!
 
-Polymart: https://polymart.org/resource/customfishing.2723 \
-Afdian: https://afdian.net/@xiaomomi
+---
+## 💖 Support the Developer
+If you enjoy using CustomFishing, consider supporting the developer!
 
-## Use CustomFishing API
+- **Polymart**: [CustomFishing on Polymart](https://polymart.org/resource/customfishing.2723/)
+- **BuiltByBit**: [CustomFishing on BuiltByBit](https://builtbybit.com/resources/customfishing.36361/)
+- **Afdian**: [Support via Afdian](https://afdian.com/@xiaomomi/)
 
-### Maven
+---
+## 📚 CustomFishing API
 
-```
-<repositories>
-  <repository>
-    <id>jitpack</id>
-    <url>https://jitpack.io/</url>
-  </repository>
-</repositories>
-```
-```
-<dependencies>
-  <dependency>
-    <groupId>com.github.Xiao-MoMi</groupId>
-    <artifactId>Custom-Fishing</artifactId>
-    <version>{LATEST}</version>
-    <scope>provided</scope>
-  </dependency>
-</dependencies>
-```
-### Gradle (Groovy)
-
-```
+### 📌 Repository
+```kotlin
 repositories {
-    maven { url 'https://jitpack.io' }
+    maven("https://repo.momirealms.net/releases/")
 }
 ```
-```
+
+### 📌 Dependency
+```kotlin
 dependencies {
-    compileOnly 'com.github.Xiao-MoMi:Custom-Fishing:{LATEST}'
+    compileOnly("net.momirealms:custom-fishing:2.3.4")
 }
 ```
-### Gradle (Kotlin)
+
+
+---
+## 🎉 Fun Fact
+I misspelled "mechanism" as "mechanic"—I should have caught that earlier! 😆
+
 
 ```
 repositories {
@@ -89,3 +99,4 @@ dependencies {
 
 > [!CAUTION]  
 > This branch is only for personal development, study and research. Please do not use any attachments directly. The author is not responsible for any problems with the source attachments.
+

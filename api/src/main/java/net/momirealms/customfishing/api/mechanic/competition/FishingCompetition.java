@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,19 +17,20 @@
 
 package net.momirealms.customfishing.api.mechanic.competition;
 
+import net.momirealms.customfishing.api.mechanic.context.Context;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
+/**
+ * Interface for managing fishing competitions.
+ */
 public interface FishingCompetition {
 
     /**
      * Start the fishing competition
      */
-    void start();
+    void start(boolean triggerEvent);
 
     /**
      * Stop the fishing competition
@@ -53,9 +54,19 @@ public interface FishingCompetition {
      * actions if it's their first time joining the competition.
      *
      * @param player The player whose data needs to be refreshed.
-     * @param score The player's current score in the competition.
+     * @param score The score to add or refresh
      */
+    @Deprecated(forRemoval = false)
     void refreshData(Player player, double score);
+
+    /**
+     * Refreshes the score for a player in the fishing competition, including updating their score and triggering
+     * actions if it's their first time joining the competition.
+     *
+     * @param player The player whose score needs to be refreshed.
+     * @param score The score to add or refresh
+     */
+    void refreshScore(Player player, double score);
 
     /**
      * Checks if a player has joined the fishing competition based on their name.
@@ -91,34 +102,29 @@ public interface FishingCompetition {
      *
      * @return The configuration of the fishing competition.
      */
-    @NotNull CompetitionConfig getConfig();
+    @NotNull
+    CompetitionConfig getConfig();
 
     /**
      * Gets the goal of the fishing competition.
      *
      * @return The goal of the fishing competition.
      */
-    @NotNull CompetitionGoal getGoal();
+    @NotNull
+    CompetitionGoal getGoal();
 
     /**
      * Gets the ranking data for the fishing competition.
      *
      * @return The ranking data for the fishing competition.
      */
-    @NotNull Ranking getRanking();
+    @NotNull
+    RankingProvider getRanking();
 
     /**
-     * Gets the cached placeholders for the fishing competition.
+     * Get the public context
      *
-     * @return A ConcurrentHashMap containing cached placeholders.
+     * @return public context
      */
-    @NotNull Map<String, String> getCachedPlaceholders();
-
-    /**
-     * Gets a specific cached placeholder value by its key.
-     *
-     * @param papi The key of the cached placeholder.
-     * @return The cached placeholder value as a string, or null if not found.
-     */
-    @Nullable String getCachedPlaceholder(String papi);
+    Context<Player> getPublicContext();
 }

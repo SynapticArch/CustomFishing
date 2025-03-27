@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,23 @@
 
 package net.momirealms.customfishing.api.mechanic.action;
 
-import net.momirealms.customfishing.api.mechanic.condition.Condition;
+import net.momirealms.customfishing.api.mechanic.context.Context;
 
-public interface Action {
+/**
+ * The Action interface defines a generic action that can be triggered based on a provided context.
+ *
+ * @param <T> the type of the object that is used in the context for triggering the action.
+ */
+public interface Action<T> {
 
-    void trigger(Condition condition);
+    /**
+     * Triggers the action based on the provided condition.
+     *
+     * @param context the context
+     */
+    void trigger(Context<T> context);
 
+    static <T> Action<T> empty() {
+        return EmptyAction.instance();
+    }
 }

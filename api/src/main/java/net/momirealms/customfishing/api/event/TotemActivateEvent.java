@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
  * This class represents an event that occurs when a player activates a totem.
  */
 public class TotemActivateEvent extends PlayerEvent implements Cancellable {
-
     private static final HandlerList handlerList = new HandlerList();
     private final Location coreLocation;
     private boolean isCancelled;
@@ -58,7 +57,7 @@ public class TotemActivateEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Gets the configuration of the totem being activated.
+     * Gets the {@link TotemConfig} of the totem being activated.
      *
      * @return The TotemConfig of the totem being activated.
      */

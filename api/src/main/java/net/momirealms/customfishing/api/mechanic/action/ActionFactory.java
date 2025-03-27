@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) <2022> <XiaoMoMi>
+ *  Copyright (C) <2024> <XiaoMoMi>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,20 @@
 
 package net.momirealms.customfishing.api.mechanic.action;
 
-public interface ActionFactory {
+import net.momirealms.customfishing.api.mechanic.misc.value.MathValue;
 
-    Action build(Object args, double chance);
+/**
+ * Interface representing a factory for creating actions.
+ *
+ * @param <T> the type of object that the action will operate on
+ */
+public interface ActionFactory<T> {
+
+    /**
+     * Constructs an action based on the provided arguments.
+     *
+     * @param args the args containing the arguments needed to build the action
+     * @return the constructed action
+     */
+    Action<T> process(Object args, MathValue<T> chance);
 }
