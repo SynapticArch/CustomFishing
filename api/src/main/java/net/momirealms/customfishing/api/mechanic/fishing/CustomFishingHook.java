@@ -49,6 +49,7 @@ import net.momirealms.sparrow.heart.SparrowHeart;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
 import org.bukkit.*;
 import org.bukkit.entity.*;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -62,7 +63,6 @@ import java.util.*;
  * Represents a custom fishing hook.
  */
 public class CustomFishingHook {
-
     private final BukkitCustomFishingPlugin plugin;
     private final FishHook hook;
     private final SchedulerTask task;
@@ -177,6 +177,7 @@ public class CustomFishingHook {
                         context.arg(ContextKeys.OTHER_X, hook.getLocation().getBlockX());
                         context.arg(ContextKeys.OTHER_Y, hook.getLocation().getBlockY());
                         context.arg(ContextKeys.OTHER_Z, hook.getLocation().getBlockZ());
+                        context.arg(ContextKeys.OPEN_WATER, hook.isInOpenWater());
 
                         // get the next loot
                         Loot loot;
@@ -463,6 +464,11 @@ public class CustomFishingHook {
         context.arg(ContextKeys.OTHER_Y, hook.getLocation().getBlockY());
         context.arg(ContextKeys.OTHER_Z, hook.getLocation().getBlockZ());
 
+        FishingResultEvent event = new FishingResultEvent(context, FishingResultEvent.Result.FAILURE, hook, nextLoot);
+        if (EventUtils.fireAndCheckCancel(event)) {
+            return;
+        }
+
         gears.trigger(ActionTrigger.FAILURE, context);
         plugin.getEventManager().trigger(context, nextLoot.id(), MechanicType.LOOT, ActionTrigger.FAILURE);
     }
@@ -538,6 +544,7 @@ public class CustomFishingHook {
                                 }
                             }
                             if (item != null) {
+                                item.setInvulnerable(true);
                                 FishingLootSpawnEvent spawnEvent = new FishingLootSpawnEvent(context, hookLocation, nextLoot, item);
                                 Bukkit.getPluginManager().callEvent(spawnEvent);
                                 if (!spawnEvent.summonEntity())
@@ -547,6 +554,12 @@ public class CustomFishingHook {
                                 if (item.isValid() && nextLoot.preventGrabbing()) {
                                     item.getPersistentDataContainer().set(Objects.requireNonNull(NamespacedKey.fromString("owner", plugin.getBootstrap())), PersistentDataType.STRING, context.holder().getName());
                                 }
+                                if (ConfigManager.triggerFishEvent()) {
+                                    CustomPlayerFishEvent customEvent = new CustomPlayerFishEvent(context.holder(), item, hook, gears.getRodSlot() == HandSlot.MAIN ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND, PlayerFishEvent.State.CAUGHT_FISH);
+                                    EventUtils.fireAndForget(customEvent);
+                                }
+                                // prevent it from being removed by lava and fire
+                                this.plugin.getScheduler().sync().runLater(() -> item.setInvulnerable(false), 20, item.getLocation());
                             }
                         }
                         doSuccessActions();
@@ -573,6 +586,10 @@ public class CustomFishingHook {
                     entity.remove();
                 if (spawnEvent.skipActions())
                     return;
+                if (ConfigManager.triggerFishEvent()) {
+                    CustomPlayerFishEvent customEvent = new CustomPlayerFishEvent(context.holder(), entity, hook, gears.getRodSlot() == HandSlot.MAIN ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND, PlayerFishEvent.State.CAUGHT_FISH);
+                    EventUtils.fireAndForget(customEvent);
+                }
                 doSuccessActions();
             }
         }
@@ -617,17 +634,25 @@ public class CustomFishingHook {
         if (!nextLoot.disableStats()) {
             plugin.getStorageManager().getOnlineUser(player.getUniqueId()).ifPresent(
                     userData -> {
+                        int amount = userData.statistics().getAmount(nextLoot.statisticKey().amountKey());
+                        if (amount == 0) {
+                            context.arg(ContextKeys.FIRST_CAPTURE, true);
+                        }
                         Pair<Integer, Integer> result = userData.statistics().addAmount(nextLoot.statisticKey().amountKey(), 1);
                         context.arg(ContextKeys.TOTAL_AMOUNT, userData.statistics().getAmount(nextLoot.statisticKey().amountKey()));
-                        Optional.ofNullable(context.arg(ContextKeys.SIZE)).ifPresent(size -> {
-                            float max = Math.max(size, userData.statistics().getMaxSize(nextLoot.statisticKey().sizeKey()));
+                        Optional.ofNullable(context.arg(ContextKeys.SIZE)).ifPresentOrElse(size -> {
+                            float currentRecord = userData.statistics().getMaxSize(nextLoot.statisticKey().sizeKey());
+                            float max = Math.max(size, currentRecord);
                             context.arg(ContextKeys.RECORD, max);
+                            context.arg(ContextKeys.PREVIOUS_RECORD, currentRecord);
                             context.arg(ContextKeys.RECORD_FORMATTED, String.format("%.2f", max));
+                            context.arg(ContextKeys.PREVIOUS_RECORD_FORMATTED, String.format("%.2f", currentRecord));
                             if (userData.statistics().updateSize(nextLoot.statisticKey().sizeKey(), size)) {
+                                context.arg(ContextKeys.IS_NEW_SIZE_RECORD, true);
+                                plugin.getEventManager().trigger(context, id, MechanicType.LOOT, ActionTrigger.SUCCESS, result.left(), result.right());
                                 plugin.getEventManager().trigger(context, id, MechanicType.LOOT, ActionTrigger.NEW_SIZE_RECORD);
                             }
-                        });
-                        plugin.getEventManager().trigger(context, id, MechanicType.LOOT, ActionTrigger.SUCCESS, result.left(), result.right());
+                        }, () -> plugin.getEventManager().trigger(context, id, MechanicType.LOOT, ActionTrigger.SUCCESS, result.left(), result.right()));
                     }
             );
         }

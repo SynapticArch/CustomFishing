@@ -39,6 +39,7 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
             new SellFishCommand(this),
             new GetItemCommand(this),
             new GiveItemCommand(this),
+            new GiveItemByUUIDCommand(this),
             new ImportItemCommand(this),
             new EndCompetitionCommand(this),
             new StopCompetitionCommand(this),
@@ -56,7 +57,8 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
             new ResetStatisticsCommand(this),
             new QueryStatisticsCommand(this),
             new DebugLootCommand(this),
-            new DebugBiomeCommand(this)
+            new DebugBiomeCommand(this),
+            new DebugSNBTCommand(this)
     );
 
     private final Index<String, CommandFeature<CommandSender>> INDEX = Index.create(CommandFeature::getFeatureID, FEATURES);

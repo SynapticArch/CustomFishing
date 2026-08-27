@@ -25,6 +25,7 @@ import net.momirealms.customfishing.api.mechanic.context.ContextKeys;
 import net.momirealms.customfishing.api.mechanic.effect.Effect;
 import net.momirealms.customfishing.api.mechanic.effect.EffectProperties;
 import net.momirealms.customfishing.api.util.EventUtils;
+import net.momirealms.customfishing.common.helper.VersionHelper;
 import net.momirealms.customfishing.common.plugin.scheduler.SchedulerTask;
 import net.momirealms.customfishing.common.util.RandomUtils;
 import org.bukkit.Location;
@@ -40,7 +41,6 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class VoidFishingMechanic implements HookMechanic {
-
     private final FishHook hook;
     private final Effect gearsEffect;
     private final Context<Player> context;
@@ -65,12 +65,34 @@ public class VoidFishingMechanic implements HookMechanic {
         if (!(boolean) gearsEffect.properties().getOrDefault(EffectProperties.VOID_FISHING, false)) {
             return false;
         }
-        return hook.getLocation().getY() <= hook.getWorld().getMinHeight();
+        // the hook must be lower than the player by at least the configured height difference
+        if (context.holder().getLocation().getY() - hook.getLocation().getY() < ConfigManager.voidMinHeightDifference()) {
+            return false;
+        }
+        return isInVoidFishingArea();
     }
 
     @Override
     public boolean shouldStop() {
-        return hook.getLocation().getY() > hook.getWorld().getMinHeight();
+        return false;
+    }
+
+    private boolean isInVoidFishingArea() {
+        Location hookLocation = hook.getLocation();
+        int minHeight = hook.getWorld().getMinHeight();
+        // the hook must be within the configured distance above the world's min height
+        if (hookLocation.getY() > minHeight + ConfigManager.voidMaxDistanceFromBottom()) {
+            return false;
+        }
+        // all blocks between the bottom of the world and the hook must be air
+        int x = hookLocation.getBlockX();
+        int z = hookLocation.getBlockZ();
+        for (int y = minHeight; y <= hookLocation.getBlockY(); y++) {
+            if (!hook.getWorld().getBlockAt(x, y, z).getType().isAir()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -98,7 +120,11 @@ public class VoidFishingMechanic implements HookMechanic {
                     if (RandomUtils.generateRandomDouble(0, 1) < 0.5) {
                         hook.getWorld().spawnParticle(Particle.END_ROD, location.getX(), location.getY(), location.getZ(), (int) (1.0F + 0.3 * 20.0F), 0.3, 0.0D, 0.3, 0.10000000298023224D);
                     } else {
-                        hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, location.getX(), location.getY(), location.getZ(), (int) (1.0F + 0.3 * 20.0F), 0.3, 0.0D, 0.3, 0.10000000298023224D);
+                        if (VersionHelper.isVersionNewerThan1_21_9()) {
+                            hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, location.getX(), location.getY(), location.getZ(), (int) (1.0F + 0.3 * 20.0F), 0.3, 0.0D, 0.3, 0.10000000298023224D, 0f);
+                        } else {
+                            hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, location.getX(), location.getY(), location.getZ(), (int) (1.0F + 0.3 * 20.0F), 0.3, 0.0D, 0.3, 0.10000000298023224D);
+                        }
                     }
                 }
                 if (this.nibble <= 0) {
@@ -156,7 +182,11 @@ public class VoidFishingMechanic implements HookMechanic {
                         d0 = location.getX() + Math.sin(f1) * f2 * 0.1D;
                         d1 = location.getY();
                         d2 = location.getZ() + Math.cos(f1) * f2 * 0.1D;
-                        hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, d0, d1, d2, 2 + RandomUtils.generateRandomInt(0,1), 0.10000000149011612D, 0.0D, 0.10000000149011612D, 0.0D);
+                        if (VersionHelper.isVersionNewerThan1_21_9()) {
+                            this.hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, d0, d1, d2, 2 + RandomUtils.generateRandomInt(0,1), 0.10000000149011612D, 0.0D, 0.10000000149011612D, 0.0D, 0f);
+                        } else {
+                            this.hook.getWorld().spawnParticle(Particle.DRAGON_BREATH, d0, d1, d2, 2 + RandomUtils.generateRandomInt(0,1), 0.10000000149011612D, 0.0D, 0.10000000149011612D, 0.0D);
+                        }
                     }
                     if (this.timeUntilLured <= 0) {
                         this.fishAngle = RandomUtils.generateRandomFloat(0F, 360F);

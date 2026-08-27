@@ -17,8 +17,6 @@
 
 package net.momirealms.customfishing.bukkit.item;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
 import net.momirealms.customfishing.api.BukkitCustomFishingPlugin;
 import net.momirealms.customfishing.api.integration.ExternalProvider;
 import net.momirealms.customfishing.api.integration.ItemProvider;
@@ -69,7 +67,6 @@ import java.util.function.BiConsumer;
 import static java.util.Objects.requireNonNull;
 
 public class BukkitItemManager implements ItemManager, Listener {
-
     private final BukkitCustomFishingPlugin plugin;
     private final HashMap<String, ItemProvider> itemProviders = new HashMap<>();
     private final HashMap<String, CustomFishingItem> items = new HashMap<>();
@@ -179,6 +176,18 @@ public class BukkitItemManager implements ItemManager, Listener {
     public String getCustomFishingItemID(@NotNull ItemStack itemStack) {
         if (itemStack.getType() == Material.AIR) return null;
         return (String) factory.wrap(itemStack).getTag("CustomFishing", "id").orElse(null);
+    }
+
+    @Override
+    public Float getFishSize(@NotNull ItemStack itemStack) {
+        if (itemStack.getType() == Material.AIR) return null;
+        Optional<Object> tag = factory.wrap(itemStack).getTag("CustomFishing", "size");
+        if (tag.isPresent()) {
+            if (tag.get() instanceof Number n) {
+                return n.floatValue();
+            }
+        }
+        return null;
     }
 
     @NotNull
@@ -325,14 +334,16 @@ public class BukkitItemManager implements ItemManager, Listener {
             plugin.debug("Another plugin modified the item from `PlayerItemDamageEvent` called by CustomFishing");
             return;
         }
-        if (!itemStack.getItemMeta().equals(previousMeta)) {
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null || !itemMeta.equals(previousMeta)) {
             return;
         }
 
         DurabilityItem durabilityItem = wrapDurabilityItem(wrapped);
         int damage = durabilityItem.damage();
         if (damage + amount >= durabilityItem.maxDamage()) {
-            plugin.getSenderFactory().getAudience(player).playSound(Sound.sound(Key.key("minecraft:entity.item.break"), Sound.Source.PLAYER, 1, 1));
+            player.playSound(player, "minecraft:entity.item.break", SoundCategory.PLAYERS, 1, 1);
             itemStack.setAmount(0);
             return;
         }
@@ -350,8 +361,9 @@ public class BukkitItemManager implements ItemManager, Listener {
             return;
         DurabilityItem wrappedDurability = wrapDurabilityItem(wrapped);
         if (damage >= wrappedDurability.maxDamage()) {
-            if (player != null)
-                plugin.getSenderFactory().getAudience(player).playSound(Sound.sound(Key.key("minecraft:entity.item.break"), Sound.Source.PLAYER, 1, 1));
+            if (player != null) {
+                player.playSound(player, "minecraft:entity.item.break", SoundCategory.PLAYERS, 1, 1);
+            }
             itemStack.setAmount(0);
             return;
         }

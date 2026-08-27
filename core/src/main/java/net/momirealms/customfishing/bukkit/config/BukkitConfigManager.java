@@ -209,6 +209,8 @@ public class BukkitConfigManager extends ConfigManager {
         voidMaxTime = config.getInt("mechanics.void-fishing.max-wait-time", 600);
         finalVoidMinTime = config.getInt("mechanics.void-fishing.final-min-wait-time", 50);
         finalVoidMaxTime = config.getInt("mechanics.void-fishing.final-max-wait-time", 1200);
+        voidMinHeightDifference = config.getDouble("mechanics.void-fishing.min-height-difference", 2d);
+        voidMaxDistanceFromBottom = config.getDouble("mechanics.void-fishing.max-distance-from-bottom", 16d);
 
         restrictedSizeRange = config.getBoolean("mechanics.size.restricted-size-range", true);
 
@@ -221,10 +223,12 @@ public class BukkitConfigManager extends ConfigManager {
         logDataSaving = config.getBoolean("other-settings.log-data-saving", true);
         lockData = config.getBoolean("other-settings.lock-data", true);
 
-        durabilityLore = new ArrayList<>(config.getStringList("other-settings.custom-durability-format").stream().map(it -> "<!i>" + it).toList());
+        durabilityLore = new ArrayList<>(config.getStringList("other-settings.custom-durability-format").stream().map(it -> "<!italic>" + it).toList());
 
         itemDetectOrder = config.getStringList("other-settings.item-detection-order").toArray(new String[0]);
         blockDetectOrder = config.getStringList("other-settings.block-detection-order").toArray(new String[0]);
+
+        triggerFishEvent = config.getBoolean("other-settings.trigger-fish-event", false);
 
         allowMultipleTotemType = config.getBoolean("mechanics.totem.allow-multiple-type", true);
         allowSameTotemType = config.getBoolean("mechanics.totem.allow-same-type", false);
@@ -459,7 +463,7 @@ public class BukkitConfigManager extends ConfigManager {
             return (item, context) -> item.customModelData((int) mathValue.evaluate(context));
         }, 5000, "custom-model-data");
         this.registerItemParser(arg -> {
-            TextValue<Player> textValue = TextValue.auto("<!i><white>" + arg);
+            TextValue<Player> textValue = TextValue.auto("<!italic><white>" + arg);
             return (item, context) -> {
                 item.displayName(AdventureHelper.miniMessageToJson(textValue.render(context)));
             };
@@ -468,7 +472,7 @@ public class BukkitConfigManager extends ConfigManager {
             List<String> list = ListUtils.toList(arg);
             List<TextValue<Player>> lore = new ArrayList<>();
             for (String text : list) {
-                lore.add(TextValue.auto("<!i><white>" + text));
+                lore.add(TextValue.auto("<!italic><white>" + text));
             }
             return (item, context) -> {
                 item.lore(lore.stream()
@@ -1009,7 +1013,7 @@ public class BukkitConfigManager extends ConfigManager {
     private void registerBuiltInHookParser() {
         this.registerHookParser(object -> {
             List<String> lore = ListUtils.toList(object);
-            return builder -> builder.lore(lore.stream().map(it -> "<!i>" + it).toList());
+            return builder -> builder.lore(lore.stream().map(it -> "<!italic>" + it).toList());
         }, "lore-on-rod");
     }
 

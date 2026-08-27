@@ -64,7 +64,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class ConfigManager implements ConfigLoader, Reloadable {
-
     private static ConfigManager instance;
     protected final BukkitCustomFishingPlugin plugin;
     protected final HashMap<String, Node<ConfigParserFunction>> entityFormatFunctions = new HashMap<>();
@@ -102,6 +101,8 @@ public abstract class ConfigManager implements ConfigLoader, Reloadable {
     protected int voidMaxTime;
     protected int finalVoidMaxTime;
     protected int finalVoidMinTime;
+    protected double voidMinHeightDifference;
+    protected double voidMaxDistanceFromBottom;
     protected int multipleLootSpawnDelay;
     protected boolean restrictedSizeRange;
     protected List<String> durabilityLore;
@@ -115,6 +116,7 @@ public abstract class ConfigManager implements ConfigLoader, Reloadable {
     protected boolean baitAnimation;
     protected boolean antiAutoFishingMod;
     protected List<TriConsumer<Effect, Context<Player>, Integer>> globalEffects;
+    protected boolean triggerFishEvent;
 
     protected ConfigManager(BukkitCustomFishingPlugin plugin) {
         this.plugin = plugin;
@@ -225,6 +227,14 @@ public abstract class ConfigManager implements ConfigLoader, Reloadable {
         return instance.finalVoidMaxTime;
     }
 
+    public static double voidMinHeightDifference() {
+        return instance.voidMinHeightDifference;
+    }
+
+    public static double voidMaxDistanceFromBottom() {
+        return instance.voidMaxDistanceFromBottom;
+    }
+
     public static int multipleLootSpawnDelay() {
         return instance.multipleLootSpawnDelay;
     }
@@ -275,6 +285,10 @@ public abstract class ConfigManager implements ConfigLoader, Reloadable {
 
     public static List<TriConsumer<Effect, Context<Player>, Integer>> globalEffects() {
         return instance.globalEffects;
+    }
+
+    public static boolean triggerFishEvent() {
+        return instance.triggerFishEvent;
     }
 
     public void registerHookParser(Function<Object, Consumer<HookConfig.Builder>> function, String... nodes) {

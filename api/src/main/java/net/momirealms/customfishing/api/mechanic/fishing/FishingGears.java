@@ -17,8 +17,6 @@
 
 package net.momirealms.customfishing.api.mechanic.fishing;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ScoreComponent;
 import net.momirealms.customfishing.api.BukkitCustomFishingPlugin;
@@ -39,7 +37,9 @@ import net.momirealms.customfishing.common.util.TriConsumer;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -71,13 +71,13 @@ public class FishingGears {
     private final HashMap<GearType, List<Pair<String, ItemStack>>> gears = new HashMap<>();
     private final ArrayList<EffectModifier> modifiers = new ArrayList<>();
     private boolean canFish = true;
-    private HandSlot rodSlot;
+    private EquipmentSlot rodSlot;
 
     public void setCanFish(boolean canFish) {
         this.canFish = canFish;
     }
 
-    public void setRodSlot(HandSlot rodSlot) {
+    public void setRodSlot(EquipmentSlot rodSlot) {
         this.rodSlot = rodSlot;
     }
 
@@ -146,7 +146,7 @@ public class FishingGears {
      * @return the hand slot of the fishing rod.
      */
     public HandSlot getRodSlot() {
-        return rodSlot;
+        return rodSlot == EquipmentSlot.HAND ? HandSlot.MAIN : HandSlot.OFF;
     }
 
     /**
@@ -177,7 +177,7 @@ public class FishingGears {
             String rodID = BukkitCustomFishingPlugin.getInstance().getItemManager().getItemID(rodItem);
             fishingGears.gears.put(GearType.ROD, List.of(Pair.of(rodID, rodItem)));
             context.arg(ContextKeys.ROD, rodID);
-            fishingGears.rodSlot = rodOnMainHand ? HandSlot.MAIN : HandSlot.OFF;
+            fishingGears.rodSlot = rodOnMainHand ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND;
             BukkitCustomFishingPlugin.getInstance().getEffectManager().getEffectModifier(rodID, MechanicType.ROD).ifPresent(fishingGears.modifiers::add);
 
             // set enchantments
@@ -239,6 +239,27 @@ public class FishingGears {
                     }
                 }
             }
+            ItemStack helmet = playerInventory.getHelmet();
+            ItemStack chestplate = playerInventory.getChestplate();
+            ItemStack leggings = playerInventory.getLeggings();
+            ItemStack boots = playerInventory.getBoots();
+
+            ItemStack[] armorContents = new ItemStack[]{helmet, chestplate, leggings, boots};
+            List<Pair<String, ItemStack>> gearItemsList = new ArrayList<>();
+
+            for (ItemStack armorPiece : armorContents) {
+                if (armorPiece != null && armorPiece.getType() != Material.AIR) {
+                    String gearID = BukkitCustomFishingPlugin.getInstance().getItemManager().getItemID(armorPiece);
+                    List<MechanicType> itemTypes = MechanicType.getTypeByID(gearID);
+                    if (itemTypes != null && itemTypes.contains(MechanicType.EQUIPMENT)) {
+                        gearItemsList.add(Pair.of(gearID, armorPiece));
+                        BukkitCustomFishingPlugin.getInstance().getEffectManager().getEffectModifier(gearID, MechanicType.EQUIPMENT).ifPresent(fishingGears.modifiers::add);
+                    }
+                }
+            }
+            if (!gearItemsList.isEmpty()) {
+                fishingGears.gears.put(GearType.EQUIPMENT, gearItemsList);
+            }
 
             // check requirements before checking totems
             for (EffectModifier modifier : fishingGears.modifiers) {
@@ -283,7 +304,17 @@ public class FishingGears {
                 ((context, itemStack) -> {}),
                 ((context, itemStack) -> {})
         );
-
+        public static final GearType EQUIPMENT = new GearType(MechanicType.EQUIPMENT,
+                ((context, itemStack) -> {}), // castFunction
+                ((context, itemStack) -> {}), // reelFunction
+                ((context, itemStack) -> {}), // biteFunction
+                ((context, itemStack) -> {}), // successFunction
+                ((context, itemStack) -> {}), // failureFunction
+                ((context, itemStack) -> {}), // lureFunction
+                ((context, itemStack) -> {}), // escapeFunction
+                ((context, itemStack) -> {}), // landFunction
+                ((context, itemStack) -> {})  // hookFunction
+        );
         public static final GearType BAIT = new GearType(MechanicType.BAIT,
                 ((context, itemStack) -> {
                     if (context.holder().getGameMode() != GameMode.CREATIVE)
@@ -332,7 +363,8 @@ public class FishingGears {
                                 }
                                 newLore.addAll(durabilityLore);
                                 wrapped.lore(newLore);
-                                BukkitCustomFishingPlugin.getInstance().getSenderFactory().getAudience(context.holder()).playSound(Sound.sound(Key.key("minecraft:entity.item.break"), Sound.Source.PLAYER, 1, 1));
+                                Player who = context.holder();
+                                who.playSound(who, "minecraft:entity.item.break", SoundCategory.PLAYERS, 1.0F, 1.0F);
                             } else {
                                 wrapped.setTag(hookDamage, "CustomFishing", "hook_damage");
                                 HookConfig hookConfig = BukkitCustomFishingPlugin.getInstance().getHookManager().getHook(hookID).orElseThrow();
@@ -375,7 +407,8 @@ public class FishingGears {
                                 wrapped.removeTag("CustomFishing", "hook_id");
                                 wrapped.removeTag("CustomFishing", "hook_stack");
                                 wrapped.removeTag("CustomFishing", "hook_max_damage");
-                                BukkitCustomFishingPlugin.getInstance().getSenderFactory().getAudience(context.holder()).playSound(Sound.sound(Key.key("minecraft:entity.item.break"), Sound.Source.PLAYER, 1, 1));
+                                Player player = context.holder();
+                                player.playSound(player, "minecraft:entity.item.break", SoundCategory.PLAYERS, 1, 1);
                             } else {
                                 wrapped.setTag(hookDamage, "CustomFishing", "hook_damage");
                                 HookConfig hookConfig = BukkitCustomFishingPlugin.getInstance().getHookManager().getHook(hookID).orElseThrow();

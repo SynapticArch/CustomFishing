@@ -142,8 +142,6 @@ public class BukkitCustomFishingPluginImpl extends BukkitCustomFishingPlugin {
         this.commandManager = new BukkitCommandManager(this);
         this.commandManager.registerDefaultFeatures();
 
-        if (ConfigManager.metrics()) new Metrics(getBootstrap(), 16648);
-
         boolean downloadFromPolymart = polymart.equals("1");
         boolean downloadFromBBB = buildByBit.equals("true");
 
@@ -166,9 +164,23 @@ public class BukkitCustomFishingPluginImpl extends BukkitCustomFishingPlugin {
         }
 
         if (VersionHelper.isFolia()) {
-            Bukkit.getGlobalRegionScheduler().run(getBootstrap(), (scheduledTask) -> this.reload());
+            Bukkit.getGlobalRegionScheduler().run(getBootstrap(), (scheduledTask) -> {
+                try {
+                    this.integrationManager.delayedLoad();
+                } finally {
+                    this.reload();
+                    if (ConfigManager.metrics()) new Metrics(getBootstrap(), 16648);
+                }
+            });
         } else {
-            Bukkit.getScheduler().runTask(getBootstrap(), this::reload);
+            Bukkit.getScheduler().runTask(getBootstrap(), () -> {
+                try {
+                    this.integrationManager.delayedLoad();
+                } finally {
+                    this.reload();
+                    if (ConfigManager.metrics()) new Metrics(getBootstrap(), 16648);
+                }
+            });
         }
     }
 
@@ -189,6 +201,7 @@ public class BukkitCustomFishingPluginImpl extends BukkitCustomFishingPlugin {
         this.actionManager.reload();
         this.requirementManager.reload();
         this.gameManager.unload();
+        this.gameManager.loadExpansions();
 
         // before ConfigManager
         this.placeholderManager.reload();
@@ -282,6 +295,7 @@ public class BukkitCustomFishingPluginImpl extends BukkitCustomFishingPlugin {
 
     @Override
     public void debug(Object message) {
+        if (message == null) return;
         this.debugger.accept(message::toString);
     }
 

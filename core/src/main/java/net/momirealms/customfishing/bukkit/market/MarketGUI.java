@@ -92,7 +92,7 @@ public class MarketGUI {
 
     public void show() {
         context.holder().openInventory(inventory);
-        SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.title.render(context))));
+        SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.title.render(context, true))));
     }
 
     @Nullable
@@ -113,7 +113,7 @@ public class MarketGUI {
         double earningLimit = manager.earningLimit(context);
         MarketDynamicGUIElement sellElement = (MarketDynamicGUIElement) getElement(manager.sellSlot);
         if (sellElement != null && !sellElement.getSlots().isEmpty()) {
-            Pair<Integer, Double> pair = manager.getItemsToSell(context, getItemsInGUI());
+            Pair<Integer, Double> pair = manager.getItemsToSell(context, getItemsInGUI(), (i, p) -> {});
             double totalWorth = pair.right() * manager.earningsMultiplier(context);
             int soldAmount = pair.left();
             context.arg(ContextKeys.MONEY, manager.money(totalWorth))
@@ -124,15 +124,15 @@ public class MarketGUI {
             if (totalWorth <= 0) {
                 sellElement.setItemStack(manager.sellIconDenyItem.build(context));
                 if (manager.denyTitle != null)
-                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.denyTitle.render(context))));
+                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.denyTitle.render(context, true))));
             } else if (earningLimit != -1 && (earningLimit - earningData.earnings < totalWorth)) {
                 sellElement.setItemStack(manager.sellIconLimitItem.build(context));
                 if (manager.limitTitle != null)
-                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.limitTitle.render(context))));
+                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.limitTitle.render(context, true))));
             } else {
                 sellElement.setItemStack(manager.sellIconAllowItem.build(context));
                 if (manager.allowTitle != null)
-                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.allowTitle.render(context))));
+                    SparrowHeart.getInstance().updateInventoryTitle(context.holder(), AdventureHelper.componentToJson(AdventureHelper.miniMessage(manager.allowTitle.render(context, true))));
             }
         }
 
@@ -143,7 +143,7 @@ public class MarketGUI {
                 Optional<UserData> optionalUserData = BukkitCustomFishingPlugin.getInstance().getStorageManager().getOnlineUser(context.holder().getUniqueId());
                 optionalUserData.ifPresent(userData -> itemStacksToSell.addAll(manager.storageContentsToList(userData.holder().getInventory().getStorageContents())));
             }
-            Pair<Integer, Double> pair = manager.getItemsToSell(context, itemStacksToSell);
+            Pair<Integer, Double> pair = manager.getItemsToSell(context, itemStacksToSell, (i, p) -> {});
             double totalWorth = pair.right() * manager.earningsMultiplier(context);
             int soldAmount = pair.left();
             context.arg(ContextKeys.MONEY, manager.money(totalWorth))

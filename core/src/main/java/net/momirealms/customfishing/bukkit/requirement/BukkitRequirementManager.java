@@ -30,10 +30,7 @@ import net.momirealms.customfishing.api.mechanic.loot.Loot;
 import net.momirealms.customfishing.api.mechanic.misc.season.Season;
 import net.momirealms.customfishing.api.mechanic.misc.value.MathValue;
 import net.momirealms.customfishing.api.mechanic.misc.value.TextValue;
-import net.momirealms.customfishing.api.mechanic.requirement.Requirement;
-import net.momirealms.customfishing.api.mechanic.requirement.RequirementExpansion;
-import net.momirealms.customfishing.api.mechanic.requirement.RequirementFactory;
-import net.momirealms.customfishing.api.mechanic.requirement.RequirementManager;
+import net.momirealms.customfishing.api.mechanic.requirement.*;
 import net.momirealms.customfishing.api.mechanic.totem.ActiveTotemList;
 import net.momirealms.customfishing.api.util.MiscUtils;
 import net.momirealms.customfishing.api.util.MoonPhase;
@@ -49,6 +46,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Boat;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -166,6 +164,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
     }
 
     private void registerBuiltInRequirements() {
+        this.registerFirstCaptureRequirement();
         this.registerTimeRequirement();
         this.registerYRequirement();
         this.registerInWaterRequirement();
@@ -212,6 +211,8 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         this.registerHasPlayerLootRequirement();
         this.registerLootOrderRequirement();
         this.registerIsBedrockPlayerRequirement();
+        this.registerIsNewSizeRecordRequirement();
+        this.registerInBoatRequirement();
     }
 
     private void registerIsBedrockPlayerRequirement() {
@@ -333,6 +334,27 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
                 return Requirement.empty();
             }
         }, "item-in-hand");
+        registerRequirement((args, actions, runActions) -> {
+            if (args instanceof Section section) {
+                boolean mainOrOff = section.getString("hand","main").equalsIgnoreCase("main");
+                int amount = section.getInt("amount", 1);
+                List<String> items = ListUtils.toList(section.get("item"));
+                return context -> {
+                    ItemStack itemStack = mainOrOff ?
+                            context.holder().getInventory().getItemInMainHand()
+                            : context.holder().getInventory().getItemInOffHand();
+                    String id = plugin.getItemManager().getItemID(itemStack);
+                    if (!items.contains(id) || itemStack.getAmount() < amount) {
+                        return true;
+                    }
+                    if (runActions) ActionManager.trigger(context, actions);
+                    return false;
+                };
+            } else {
+                plugin.getPluginLogger().warn("Invalid value type: " + args.getClass().getSimpleName() + " found at !item-in-hand requirement which is expected be `Section`");
+                return Requirement.empty();
+            }
+        }, "!item-in-hand");
     }
 
     private void registerPluginLevelRequirement() {
@@ -436,6 +458,19 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "&&");
     }
 
+    private void registerFirstCaptureRequirement() {
+        registerRequirement((args, actions, runActions) -> {
+            boolean required = (boolean) args;
+            return context -> {
+                Boolean arg = context.arg(ContextKeys.FIRST_CAPTURE);
+                boolean first = arg != null && arg;
+                if (first == required) return true;
+                if (runActions) ActionManager.trigger(context, actions);
+                return false;
+            };
+        }, "first-capture");
+    }
+
     private void registerInWaterRequirement() {
         registerRequirement((args, actions, runActions) -> {
             boolean inWater = (boolean) args;
@@ -495,7 +530,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
     private void registerRodRequirement() {
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> rods = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.ROD);
                 if (rods.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -504,7 +539,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "rod");
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> rods = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.ROD);
                 if (!rods.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -574,7 +609,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
     private void registerHookRequirement() {
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> hooks = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.HOOK);
                 if (hooks.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -583,7 +618,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "hook");
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> hooks = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.HOOK);
                 if (!hooks.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -592,7 +627,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "!hook");
         registerRequirement((args, actions, runActions) -> {
             boolean has = (boolean) args;
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.HOOK);
                 if (id != null && has) return true;
                 if (id == null && !has) return true;
@@ -605,7 +640,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
     private void registerBaitRequirement() {
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> arg = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.BAIT);
                 if (arg.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -614,7 +649,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "bait");
         registerRequirement((args, actions, runActions) -> {
             HashSet<String> arg = new HashSet<>(ListUtils.toList(args));
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.BAIT);
                 if (!arg.contains(id)) return true;
                 if (runActions) ActionManager.trigger(context, actions);
@@ -623,7 +658,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
         }, "!bait");
         registerRequirement((args, actions, runActions) -> {
             boolean has = (boolean) args;
-            return context -> {
+            return (GearRequirement<Player>) context -> {
                 String id = context.arg(ContextKeys.BAIT);
                 if (id != null && has) return true;
                 if (id == null && !has) return true;
@@ -657,6 +692,32 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
                 return false;
             };
         }, "open-water");
+    }
+
+    private void registerIsNewSizeRecordRequirement() {
+        registerRequirement((args, actions, runActions) -> {
+            boolean is = (boolean) args;
+            return context -> {
+                boolean current = Optional.ofNullable(context.arg(ContextKeys.IS_NEW_SIZE_RECORD)).orElse(false);
+                if (is == current)
+                    return true;
+                if (runActions) ActionManager.trigger(context, actions);
+                return false;
+            };
+        }, "new-size-record");
+    }
+
+    private void registerInBoatRequirement() {
+        registerRequirement((args, actions, runActions) -> {
+            boolean inBoat = (boolean) args;
+            return context -> {
+                if (context.holder() == null) return false;
+                boolean isInBoat = context.holder().isInsideVehicle() && context.holder().getVehicle() instanceof Boat;
+                if (isInBoat == inBoat) return true;
+                if (runActions) ActionManager.trigger(context, actions);
+                return false;
+            };
+        }, "in-boat");
     }
 
     private void registerHasStatsRequirement() {
@@ -774,7 +835,7 @@ public class BukkitRequirementManager implements RequirementManager<Player> {
             int max;
             try {
                 min = Integer.parseInt(split[0]);
-                max = Integer.parseInt(split[0]);
+                max = Integer.parseInt(split[1]);
             } catch (NumberFormatException e) {
                 plugin.getPluginLogger().warn("Invalid number format for range: " + depthRange, e);
                 return Requirement.empty();

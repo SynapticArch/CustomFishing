@@ -58,15 +58,48 @@ public class VersionHelper {
         return updateFuture;
     };
 
-    private static float version;
+    private static int version;
     private static boolean mojmap;
     private static boolean folia;
 
     public static void init(String serverVersion) {
-        String[] split = serverVersion.split("\\.");
-        version = Float.parseFloat(split[1] + "." + (split.length == 3 ? split[2] : "0"));
+        version = parseVersionToInteger(serverVersion);
         checkMojMap();
         checkFolia();
+    }
+
+    public static int parseVersionToInteger(String versionString) {
+        int v1 = 0;
+        int v2 = 0;
+        int v3 = 0;
+        int currentNumber = 0;
+        int part = 0;
+        for (int i = 0; i < versionString.length(); i++) {
+            char c = versionString.charAt(i);
+            if (c >= '0' && c <= '9') {
+                currentNumber = currentNumber * 10 + (c - '0');
+            } else if (c == '.') {
+                if (part == 0) {
+                    v1 = currentNumber;
+                }
+                if (part == 1) {
+                    v2 = currentNumber;
+                }
+                part++;
+                currentNumber = 0;
+                if (part > 2) {
+                    break;
+                }
+            }
+        }
+        if (part == 0) {
+            v1 = currentNumber;
+        } else if (part == 1) {
+            v2 = currentNumber;
+        } else if (part == 2) {
+            v3 = currentNumber;
+        }
+        return v1 * 10000 + v2 * 100 + v3;
     }
 
     private static void checkMojMap() {
@@ -86,28 +119,40 @@ public class VersionHelper {
         }
     }
 
+    public static boolean isVersionNewerThan26_1() {
+        return version >= 260100;
+    }
+
     public static boolean isVersionNewerThan1_19() {
-        return version >= 19;
+        return version >= 11900;
     }
 
     public static boolean isVersionNewerThan1_19_4() {
-        return version >= 19.39;
+        return version >= 11904;
     }
 
     public static boolean isVersionNewerThan1_20_2() {
-        return version >= 20.19;
+        return version >= 12002;
     }
 
     public static boolean isVersionNewerThan1_20_5() {
-        return version >= 20.49;
+        return version >= 12005;
     }
 
     public static boolean isVersionNewerThan1_21_3() {
-        return version >= 21.29;
+        return version >= 12103;
     }
 
     public static boolean isVersionNewerThan1_21_4() {
-        return version >= 21.39;
+        return version >= 12104;
+    }
+
+    public static boolean isVersionNewerThan1_21_5() {
+        return version >= 12105;
+    }
+
+    public static boolean isVersionNewerThan1_21_9() {
+        return version >= 12109;
     }
 
     public static boolean isFolia() {

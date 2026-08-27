@@ -22,7 +22,6 @@ import net.momirealms.customfishing.api.mechanic.effect.Effect;
 import net.momirealms.customfishing.api.mechanic.loot.LootType;
 import net.momirealms.customfishing.api.mechanic.totem.ActiveTotemList;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.FishHook;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -44,6 +43,7 @@ public class ContextKeys<T> {
     public static final ContextKeys<LootType> LOOT = of("loot", LootType.class);
     public static final ContextKeys<String> NICK = of("nick", String.class);
     public static final ContextKeys<Boolean> OPEN_WATER = of("open_water", Boolean.class);
+    public static final ContextKeys<Boolean> IS_NEW_SIZE_RECORD = of("is_new_size_record", Boolean.class);
     public static final ContextKeys<Float> SIZE = of("size", Float.class);
     public static final ContextKeys<Double> SIZE_MULTIPLIER = of("size_multiplier", Double.class);
     public static final ContextKeys<Double> SIZE_ADDER = of("size_adder", Double.class);
@@ -86,14 +86,18 @@ public class ContextKeys<T> {
     public static final ContextKeys<String> TIME_LEFT = of("time_left", String.class);
     public static final ContextKeys<String> PROGRESS = of("progress", String.class);
     public static final ContextKeys<Float> RECORD = of("record", Float.class);
+    public static final ContextKeys<Float> PREVIOUS_RECORD = of("previous_record", Float.class);
     public static final ContextKeys<String> RECORD_FORMATTED = of("record_formatted", String.class);
+    public static final ContextKeys<String> PREVIOUS_RECORD_FORMATTED = of("previous_record_formatted", String.class);
     public static final ContextKeys<Integer> CLICKS_LEFT = of("left_clicks", Integer.class);
+    public static final ContextKeys<Integer> CLICKED = of("clicked", Integer.class);
     public static final ContextKeys<Integer> REQUIRED_TIMES = of("clicks", Integer.class);
     public static final ContextKeys<EquipmentSlot> SLOT = of("hand", EquipmentSlot.class);
     public static final ContextKeys<Double> BONUS = of("bonus", Double.class);
     public static final ContextKeys<Double> BASE = of("base", Double.class);
     public static final ContextKeys<Integer> LOOT_ORDER = of("loot_order", Integer.class);
     public static final ContextKeys<Effect> EFFECT = of("effect", Effect.class);
+    public static final ContextKeys<Boolean> FIRST_CAPTURE = of("first_capture", Boolean.class);
 
     private final String key;
     private final Class<T> type;

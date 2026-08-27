@@ -56,7 +56,7 @@ mechanics:
             actions:
               actionbar_action:
                 type: actionbar
-                value: '<#FFD700>[New Record]</#FFD700> <#FFFFF0>You caught a(n) {nick} measuring <#FFA500>{size_formatted}cm</#FFA500> long!</#FFFFF0>'
+                value: '<#FFD700>[New Record]</#FFD700> <#FFFFF0>You caught a(n) {nick} measuring <#FFA500>{size_formatted}cm</#FFA500> long!</#FFFFF0> <#C0C0C0>(Previous record: {previous_record_formatted}cm)</#C0C0C0>'
               sound_action:
                 type: sound
                 value:
@@ -399,6 +399,10 @@ mechanics:
     # The minimum and maximum waiting time after applying the effects
     final-min-wait-time: 50
     final-max-wait-time: 1200
+    # The minimum height difference between the player and the hook required to start void fishing
+    min-height-difference: 2
+    # The maximum distance between the hook and the bottom of the world required for void fishing
+    max-distance-from-bottom: 16
   # Size configuration
   size:
     # Prevent certain effects from breaking the size limits
@@ -423,6 +427,8 @@ mechanics:
   bait-animation: true
 # Other settings
 other-settings:
+  # Whether to additionally trigger a PlayerFishEvent from Bukkit when fishing succeeds—this may improve compatibility with certain plugins, but could also lead to issues.
+  trigger-fish-event: false
   # Anti-auto-fishing mod toggle
   anti-auto-fishing-mod: false
   # Recommended to use MiniMessage format. If you prefer using legacy color codes "&", enable the support below.
