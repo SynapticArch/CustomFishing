@@ -18,13 +18,16 @@
 package net.momirealms.customfishing.api.mechanic.game;
 
 import net.momirealms.customfishing.api.BukkitCustomFishingPlugin;
+import net.momirealms.customfishing.api.event.FishingGameFailurePreventedEvent;
 import net.momirealms.customfishing.api.mechanic.context.ContextKeys;
 import net.momirealms.customfishing.api.mechanic.fishing.CustomFishingHook;
+import net.momirealms.customfishing.api.util.EventUtils;
 import net.momirealms.customfishing.common.plugin.scheduler.SchedulerTask;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 /**
  * Represents an abstract gaming player.
@@ -37,7 +40,10 @@ public abstract class AbstractGamingPlayer implements GamingPlayer, Runnable {
     protected GameSetting settings;
     protected CustomFishingHook hook;
     protected boolean isTimeOut;
-    private boolean valid = true;
+    private volatile boolean valid = true;
+    private int preventedFailures;
+    private volatile boolean restarting;
+    private BiFunction<CustomFishingHook, GameSetting, AbstractGamingPlayer> restartProvider;
     private boolean firstFlag = true;
     protected Boolean forcedGameResult;
 
@@ -57,6 +63,17 @@ public abstract class AbstractGamingPlayer implements GamingPlayer, Runnable {
         this.settings = settings;
         this.deadline = (long) (System.currentTimeMillis() + settings.time() * 1000L);
         this.arrangeTask();
+    }
+
+    void restartProvider(BiFunction<CustomFishingHook, GameSetting, AbstractGamingPlayer> provider) {
+        this.restartProvider = provider;
+    }
+
+    private AbstractGamingPlayer restart() {
+        AbstractGamingPlayer player = restartProvider.apply(hook, settings);
+        player.restartProvider = restartProvider;
+        player.preventedFailures = preventedFailures;
+        return player;
     }
 
     @Override
@@ -193,7 +210,7 @@ public abstract class AbstractGamingPlayer implements GamingPlayer, Runnable {
      */
     @Override
     public void run() {
-        if (timeOutCheck()) {
+        if (!isValid() || restarting || timeOutCheck()) {
             return;
         }
         tick();
@@ -218,10 +235,22 @@ public abstract class AbstractGamingPlayer implements GamingPlayer, Runnable {
      * Ends the game for the gaming player.
      */
     @Override
-    public void endGame() {
-        if (!isValid()) return;
-        destroy();
+    public synchronized void endGame() {
+        if (!isValid() || restarting) return;
+        if (System.currentTimeMillis() >= deadline) isTimeOut = true;
         boolean success = isSuccessful();
+        if (!success && restartProvider != null && preventedFailures < settings.maxFailures() - 1) {
+            int failureCount = ++preventedFailures;
+            restarting = true;
+            if (task != null) task.cancel();
+            BukkitCustomFishingPlugin.getInstance().getScheduler().sync().run(() -> {
+                if (hook.restartGame(this, this::restart)) {
+                    EventUtils.fireAndForget(new FishingGameFailurePreventedEvent(hook, this, failureCount));
+                }
+            }, hook.getHookEntity().getLocation());
+            return;
+        }
+        destroy();
         BukkitCustomFishingPlugin.getInstance().getScheduler().sync().run(() -> {
             if (success) {
                 hook.handleSuccessfulFishing();
